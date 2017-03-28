@@ -1,6 +1,5 @@
 import json
 import unittest
-import unittest.mock
 
 import api
 
@@ -10,14 +9,11 @@ class TestApi(unittest.TestCase):
         api.app.config['TESTING'] = True
         self.app = api.app.test_client()
 
-    @unittest.mock.patch('api.new_id')
-    def test_upload_audiofile_successful(self, new_id):
-        new_id.return_value = 'mockid'
-        response = self.app.post('/audiofiles/upload', data=b'mock')
+    def test_retrieve_audiofile_after_upload(self):
+        response = self.app.post('/audiofiles/upload', data=b'mockdata')
         response = json.loads(response.data.decode('utf-8'))
-        self.assertEqual(
-            {'_links': {'self': {'href': '/audiofiles/mockid'}}}, response
-        )
+        response = self.app.get(response['_links']['self']['href'])
+        self.assertEqual(b'mockdata', response.data)
 
 
 if __name__ == '__main__':
