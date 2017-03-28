@@ -24,7 +24,9 @@ class AudioFile:
 def upload_audiofile():
     audiofile = AudioFile(new_id(), flask.request.data)
     store[audiofile.id] = audiofile
-    return audiofile.id
+    return flask.jsonify({
+        '_links': {'self': {'href': '/audiofiles/{0}'.format(audiofile.id)}}
+    })
 
 
 @app.route('/audiofiles/<id>', methods=['GET'])
