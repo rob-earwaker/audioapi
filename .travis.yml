@@ -1,0 +1,14 @@
+language: python
+python:
+  - 3.3
+  - 3.4
+  - 3.5
+  - 3.6
+script:
+  - pip install flask
+  - python ./test_api.py
+  - pip install pycodestyle
+  - pycodestyle ./ --show-source --select=E,W
+after_success:
+  - pip install coveralls
+  - coveralls
