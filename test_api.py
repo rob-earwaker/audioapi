@@ -25,6 +25,12 @@ class TestApi(unittest.TestCase):
         self.assertIn('data', response['_links'])
         self.assertEqual(8, response['length'])
 
+    def test_retrieve_audiofile_data(self):
+        response = self.app.post('/audiofiles/upload', data=b'mockdata')
+        response = json.loads(response.data.decode('utf-8'))
+        response = self.app.get(response['_links']['data']['href'])
+        self.assertEqual(b'mockdata', response.data)
+
 
 if __name__ == '__main__':
     unittest.main()

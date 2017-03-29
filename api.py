@@ -48,5 +48,11 @@ def retrieve_audiofile(id):
     })
 
 
+@app.route('/audiofiles/<id>/data', methods=['GET'])
+def retrieve_audiofile_data(id):
+    audiofile = store[id]
+    return audiofile.data
+
+
 if __name__ == '__main__':
     app.run(debug=True)
