@@ -19,6 +19,7 @@ class TestApi(unittest.TestCase):
         response = json.loads(response.data.decode('utf-8'))
         self.assertIn('self', response['_links'])
         self.assertIn('data', response['_links'])
+        self.assertIn('audiofiles', response['_links'])
         self.assertEqual('mockname.bin', response['name'])
         self.assertEqual(8, response['length'])
 
@@ -33,6 +34,7 @@ class TestApi(unittest.TestCase):
         response = json.loads(response.data.decode('utf-8'))
         self.assertIn('self', response['_links'])
         self.assertIn('data', response['_links'])
+        self.assertIn('audiofiles', response['_links'])
         self.assertEqual('mockname.bin', response['name'])
         self.assertEqual(8, response['length'])
 
@@ -45,6 +47,44 @@ class TestApi(unittest.TestCase):
         response = json.loads(response.data.decode('utf-8'))
         response = self.app.get(response['_links']['data']['href'])
         self.assertEqual(b'mockdata', response.data)
+
+    def test_list_audiofiles(self):
+        response = self.app.get('/audiofiles')
+        response = json.loads(response.data.decode('utf-8'))
+        response = self.app.post(
+            response['_links']['upload']['href'],
+            content_type='multipart/form-data',
+            data={'file': (io.BytesIO(b'mockdata1'), 'mockname1.bin')}
+        )
+        response = json.loads(response.data.decode('utf-8'))
+        response = self.app.get(response['_links']['audiofiles']['href'])
+        response = json.loads(response.data.decode('utf-8'))
+        response = self.app.post(
+            response['_links']['upload']['href'],
+            content_type='multipart/form-data',
+            data={'file': (io.BytesIO(b'mockdata2'), 'mockname2.bin')}
+        )
+        response = json.loads(response.data.decode('utf-8'))
+        response = self.app.get(response['_links']['audiofiles']['href'])
+        response = json.loads(response.data.decode('utf-8'))
+        self.assertIn('self', response['_links'])
+        self.assertIn('upload', response['_links'])
+        self.assertEqual(2, response['count'])
+        self.assertEqual(2, len(response['_embedded']['audiofile']))
+        audiofile1 = next(
+            audiofile for audiofile in response['_embedded']['audiofile']
+            if audiofile['name'] == 'mockname1.bin'
+        )
+        self.assertIn('self', audiofile1['_links'])
+        self.assertIn('data', audiofile1['_links'])
+        self.assertEqual(9, audiofile1['length'])
+        audiofile2 = next(
+            audiofile for audiofile in response['_embedded']['audiofile']
+            if audiofile['name'] == 'mockname2.bin'
+        )
+        self.assertIn('self', audiofile2['_links'])
+        self.assertIn('data', audiofile2['_links'])
+        self.assertEqual(9, audiofile2['length'])
 
 
 if __name__ == '__main__':
