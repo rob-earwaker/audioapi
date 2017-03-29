@@ -15,8 +15,9 @@ def new_id():
 
 
 class AudioFile:
-    def __init__(self, id, data):
+    def __init__(self, id, name, data):
         self.id = id
+        self.name = name
         self.data = data
 
     def length(self):
@@ -25,13 +26,15 @@ class AudioFile:
 
 @app.route('/audiofiles/upload', methods=['POST'])
 def upload_audiofile():
-    audiofile = AudioFile(new_id(), flask.request.data)
+    file = flask.request.files['file']
+    audiofile = AudioFile(new_id(), file.filename, file.read())
     store[audiofile.id] = audiofile
     return flask.jsonify({
         '_links': {
             'self': {'href': '/audiofiles/{0}'.format(audiofile.id)},
             'data': {'href': '/audiofiles/{0}/data'.format(audiofile.id)}
         },
+        'name': audiofile.name,
         'length': audiofile.length()
     })
 
@@ -44,6 +47,7 @@ def retrieve_audiofile(id):
             'self': {'href': '/audiofiles/{0}'.format(audiofile.id)},
             'data': {'href': '/audiofiles/{0}/data'.format(audiofile.id)}
         },
+        'name': audiofile.name,
         'length': audiofile.length()
     })
 
