@@ -18,7 +18,6 @@ class TestApi(unittest.TestCase):
         )
         response = json.loads(response.data.decode('utf-8'))
         self.assertIn('self', response['_links'])
-        self.assertIn('data', response['_links'])
         self.assertIn('audiofiles', response['_links'])
         self.assertEqual('mockname.bin', response['name'])
         self.assertEqual(8, response['length'])
@@ -33,7 +32,6 @@ class TestApi(unittest.TestCase):
         response = self.app.get(response['_links']['self']['href'])
         response = json.loads(response.data.decode('utf-8'))
         self.assertIn('self', response['_links'])
-        self.assertIn('data', response['_links'])
         self.assertIn('audiofiles', response['_links'])
         self.assertEqual('mockname.bin', response['name'])
         self.assertEqual(8, response['length'])
@@ -45,7 +43,10 @@ class TestApi(unittest.TestCase):
             data={'file': (io.BytesIO(b'mockdata'), 'mockname.bin')}
         )
         response = json.loads(response.data.decode('utf-8'))
-        response = self.app.get(response['_links']['data']['href'])
+        response = self.app.get(
+            response['_links']['self']['href'],
+            headers={'Accept': 'application/octet-stream'}
+        )
         self.assertEqual(b'mockdata', response.data)
 
     def test_list_audiofiles(self):
@@ -76,14 +77,12 @@ class TestApi(unittest.TestCase):
             if audiofile['name'] == 'mockname1.bin'
         )
         self.assertIn('self', audiofile1['_links'])
-        self.assertIn('data', audiofile1['_links'])
         self.assertEqual(9, audiofile1['length'])
         audiofile2 = next(
             audiofile for audiofile in response['_embedded']['audiofile']
             if audiofile['name'] == 'mockname2.bin'
         )
         self.assertIn('self', audiofile2['_links'])
-        self.assertIn('data', audiofile2['_links'])
         self.assertEqual(9, audiofile2['length'])
 
 

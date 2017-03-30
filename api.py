@@ -31,7 +31,6 @@ class AudioFile:
         return {
             '_links': {
                 'self': {'href': self.href(self.id)},
-                'data': {'href': '/audiofiles/{0}/data'.format(self.id)},
                 'audiofiles': {'href': AudioFiles.href()}
             },
             'name': self.name,
@@ -41,8 +40,7 @@ class AudioFile:
     def embedded(self):
         return {
             '_links': {
-                'self': {'href': self.href(self.id)},
-                'data': {'href': '/audiofiles/{0}/data'.format(self.id)}
+                'self': {'href': self.href(self.id)}
             },
             'name': self.name,
             'length': self.length()
@@ -91,14 +89,12 @@ def upload_audiofile():
 
 @app.route(AudioFile.href('<id>'), methods=['GET'])
 def retrieve_audiofile(id):
+    mimetype = flask.request.accept_mimetypes.best
     audiofile = store[id]
-    return flask.jsonify(audiofile.document())
-
-
-@app.route('/audiofiles/<id>/data', methods=['GET'])
-def retrieve_audiofile_data(id):
-    audiofile = store[id]
-    return audiofile.data
+    if mimetype == 'application/octet-stream':
+        return audiofile.data
+    else:
+        return flask.jsonify(audiofile.document())
 
 
 if __name__ == '__main__':
