@@ -12,7 +12,7 @@ class TestApi(unittest.TestCase):
 
     def test_upload_audiofile(self):
         response = self.app.post(
-            '/audiofiles/upload',
+            '/audiofiles',
             content_type='multipart/form-data',
             data={'file': (io.BytesIO(b'mockdata'), 'mockname.bin')}
         )
@@ -25,7 +25,7 @@ class TestApi(unittest.TestCase):
 
     def test_retrieve_audiofile(self):
         response = self.app.post(
-            '/audiofiles/upload',
+            '/audiofiles',
             content_type='multipart/form-data',
             data={'file': (io.BytesIO(b'mockdata'), 'mockname.bin')}
         )
@@ -40,7 +40,7 @@ class TestApi(unittest.TestCase):
 
     def test_retrieve_audiofile_data(self):
         response = self.app.post(
-            '/audiofiles/upload',
+            '/audiofiles',
             content_type='multipart/form-data',
             data={'file': (io.BytesIO(b'mockdata'), 'mockname.bin')}
         )

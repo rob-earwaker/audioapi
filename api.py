@@ -23,64 +23,76 @@ class AudioFile:
     def length(self):
         return len(self.data)
 
+    @staticmethod
+    def href(id):
+        return '/audiofiles/{0}'.format(id)
 
-@app.route('/audiofiles', methods=['GET'])
-def list_audiofiles():
-    audiofiles = store.values()
-    return flask.jsonify({
-        '_links': {
-            'self': {'href': '/audiofiles'},
-            'upload': {'href': '/audiofiles/upload'}
-        },
-        'count': len(audiofiles),
-        '_embedded': {
-            'audiofile': [
-                {
-                    '_links': {
-                        'self': {
-                            'href': '/audiofiles/{0}'.format(audiofile.id)
-                        },
-                        'data': {
-                            'href': '/audiofiles/{0}/data'.format(audiofile.id)
-                        }
-                    },
-                    'name': audiofile.name,
-                    'length': audiofile.length()
-                }
-                for audiofile in audiofiles
-            ]
+    def document(self):
+        return {
+            '_links': {
+                'self': {'href': self.href(self.id)},
+                'data': {'href': '/audiofiles/{0}/data'.format(self.id)},
+                'audiofiles': {'href': AudioFiles.href()}
+            },
+            'name': self.name,
+            'length': self.length()
         }
-    })
+
+    def embedded(self):
+        return {
+            '_links': {
+                'self': {'href': self.href(self.id)},
+                'data': {'href': '/audiofiles/{0}/data'.format(self.id)}
+            },
+            'name': self.name,
+            'length': self.length()
+        }
 
 
-@app.route('/audiofiles/upload', methods=['POST'])
+class AudioFiles:
+    def __init__(self, audiofiles):
+        self.audiofiles = audiofiles
+
+    def count(self):
+        return len(self.audiofiles)
+
+    @staticmethod
+    def href():
+        return '/audiofiles'
+
+    def document(self):
+        return {
+            '_links': {
+                'self': {'href': self.href()},
+                'upload': {'href': self.href()}
+            },
+            'count': self.count(),
+            '_embedded': {
+                'audiofile': [
+                    audiofile.embedded() for audiofile in self.audiofiles
+                ]
+            }
+        }
+
+
+@app.route(AudioFiles.href(), methods=['GET'])
+def list_audiofiles():
+    audiofiles = AudioFiles(store.values())
+    return flask.jsonify(audiofiles.document())
+
+
+@app.route(AudioFiles.href(), methods=['POST'])
 def upload_audiofile():
     file = flask.request.files['file']
     audiofile = AudioFile(new_id(), file.filename, file.read())
     store[audiofile.id] = audiofile
-    return flask.jsonify({
-        '_links': {
-            'self': {'href': '/audiofiles/{0}'.format(audiofile.id)},
-            'data': {'href': '/audiofiles/{0}/data'.format(audiofile.id)},
-            'audiofiles': {'href': '/audiofiles'}
-        },
-        'name': audiofile.name,
-        'length': audiofile.length()
-    })
+    return flask.jsonify(audiofile.document())
 
 
-@app.route('/audiofiles/<id>', methods=['GET'])
+@app.route(AudioFile.href('<id>'), methods=['GET'])
 def retrieve_audiofile(id):
     audiofile = store[id]
-    return flask.jsonify({
-        '_links': {
-            'self': {'href': '/audiofiles/{0}'.format(audiofile.id)},
-            'data': {'href': '/audiofiles/{0}/data'.format(audiofile.id)},
-            'audiofiles': {'href': '/audiofiles'}
-        },
-        'name': audiofile.name,
-        'length': audiofile.length()
-    })
+    return flask.jsonify(audiofile.document())
 
 
 @app.route('/audiofiles/<id>/data', methods=['GET'])
