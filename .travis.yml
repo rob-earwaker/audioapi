@@ -5,8 +5,10 @@ python:
   - 3.5
   - 3.6
 script:
-  - pip install flask
-  - python ./test_api.py
+  - pip install flask nose coverage
+  - nosetests ./
+    --with-coverage --cover-package=api --cover-html --cover-erase
+    --with-doctest --doctest-extension=md --doctest-options=+ELLIPSIS
   - pip install pycodestyle
   - pycodestyle ./ --show-source --select=E,W
 after_success:
