@@ -102,10 +102,11 @@ def retrieve_audiofile(id):
 
 
 class AudioData:
-    def __init__(self, id, samplerate, channels):
+    def __init__(self, id, samplerate, channels, bitspersample):
         self.id = id
         self.samplerate = samplerate
         self.channels = channels
+        self.bitspersample = bitspersample
 
     @staticmethod
     def href(id):
@@ -119,7 +120,8 @@ class AudioData:
                 'audiofiles': {'href': AudioFiles.href()}
             },
             'samplerate': self.samplerate,
-            'channels': self.channels
+            'channels': self.channels,
+            'bitsPerSample': self.bitspersample
         }
 
 
@@ -128,7 +130,9 @@ def retrieve_audiodata(id):
     audiofile = store[id]
     chunk = wav.decode(io.BytesIO(audiofile.data))
     format = chunk.subchunks.format
-    audiodata = AudioData(id, format.samplerate, format.channels)
+    audiodata = AudioData(
+        id, format.samplerate, format.channels, format.bitspersample
+    )
     return flask.jsonify(audiodata.document())
 
 

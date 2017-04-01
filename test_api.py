@@ -102,6 +102,7 @@ class TestApi(unittest.TestCase):
         response = json.loads(response.data.decode('utf-8'))
         self.assertEqual(44100, response['samplerate'])
         self.assertEqual(1, response['channels'])
+        self.assertEqual(16, response['bitsPerSample'])
 
 
 if __name__ == '__main__':
