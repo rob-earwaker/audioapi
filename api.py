@@ -128,10 +128,9 @@ class AudioData:
 @app.route(AudioData.href('<id>'), methods=['GET'])
 def retrieve_audiodata(id):
     audiofile = store[id]
-    chunk = wav.decode(io.BytesIO(audiofile.data))
-    format = chunk.subchunks.format
+    wavfile = wav.read(io.BytesIO(audiofile.data))
     audiodata = AudioData(
-        id, format.samplerate, format.channels, format.bitspersample
+        id, wavfile.sample_rate, wavfile.channel_count, wavfile.bits_per_sample
     )
     return flask.jsonify(audiodata.document())
 
