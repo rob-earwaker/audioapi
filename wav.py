@@ -71,7 +71,7 @@ class RiffChunk:
                 subchunks.append(Chunk.decode(stream))
             except ChunkIncompleteError:
                 break
-        return cls(chunk.size, format, subchunks)            
+        return cls(chunk.size, format, subchunks)
 
     def chunk(self):
         data = (
@@ -145,9 +145,8 @@ class RiffWaveSubchunks(list):
 
     def __repr__(self):
         return (
-            'RiffWaveSubchunks('
-                'subchunks={0}, format_chunk_index={1}, data_chunk_index={2}'
-            ')'
+            'RiffWaveSubchunks(subchunks={0}, format_chunk_index={1}, '
+            'data_chunk_index={2})'
         ).format(
             repr(list(self)),
             repr(self.format_chunk_index),
@@ -192,15 +191,9 @@ class WaveFormatChunk:
 
     def __repr__(self):
         return (
-            'WaveFormatChunk('
-                'size={0}, '
-                'format={1}, '
-                'channels={2}, '
-                'samplerate={3}, '
-                'byterate={4}, '
-                'blockalign={5}, '
-                'specific=<{6} bytes>'
-            ')'
+            'WaveFormatChunk(size={0}, format={1}, channels={2}, '
+            'samplerate={3}, byterate={4}, blockalign={5}, '
+            'specific=<{6} bytes>)'
         ).format(
             repr(self.size),
             repr(self.format),
@@ -238,14 +231,8 @@ class PcmWaveFormatChunk:
 
     def __repr__(self):
         return (
-            'PcmWaveFormatChunk('
-                'size={0}, '
-                'channels={1}, '
-                'samplerate={2}, '
-                'byterate={3}, '
-                'blockalign={4}, '
-                'bitspersample={5}'
-            ')'
+            'PcmWaveFormatChunk(size={0}, channels={1}, samplerate={2}, '
+            'byterate={3}, blockalign={4}, bitspersample={5})'
         ).format(
             repr(self.size),
             repr(self.channels),
