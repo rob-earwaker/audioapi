@@ -36,19 +36,6 @@ class Chunk:
         data = read(size, stream)
         return cls(id.decode('ascii'), size, data)
 
-    def bytes(self):
-        return (
-            struct.pack('<4sI', self.id.encode('ascii'), self.size) + self.data
-        )
-
-    def stream(self):
-        return io.BytesIO(self.bytes())
-
-    def __repr__(self):
-        return 'Chunk(id={0}, size={1}, data=<{2} bytes>)'.format(
-            repr(self.id), repr(self.size), len(self.data)
-        )
-
 
 class RiffChunk:
     id = 'RIFF'
@@ -71,24 +58,6 @@ class RiffChunk:
                 break
         return cls(chunk.size, format, subchunks)
 
-    def chunk(self):
-        data = (
-            struct.pack('4s', self.format.encode('ascii')) +
-            ''.join(subchunk.bytes() for subchunk in self.subchunks)
-        )
-        return Chunk(self.id, self.size, data)
-
-    def bytes(self):
-        return self.chunk().bytes()
-
-    def stream(self):
-        return self.chunk().stream()
-
-    def __repr__(self):
-        return 'RiffChunk(size={0}, format={1}, subchunks={2}'.format(
-            repr(self.size), repr(self.format), repr(self.subchunks)
-        )
-
 
 class RiffWaveChunk:
     id = RiffChunk.id
@@ -101,11 +70,6 @@ class RiffWaveChunk:
     @classmethod
     def create(cls, chunk):
         return cls(chunk.size, RiffWaveSubchunks.create(chunk.subchunks))
-
-    def __repr__(self):
-        return 'RiffWaveChunk(size={0}, subchunks={1})'.format(
-            repr(self.size), repr(self.subchunks)
-        )
 
 
 class RiffWaveSubchunks(list):
@@ -141,26 +105,6 @@ class RiffWaveSubchunks(list):
     def data(self):
         return self[self.data_chunk_index]
 
-    def __repr__(self):
-        return (
-            'RiffWaveSubchunks(subchunks={0}, format_chunk_index={1}, '
-            'data_chunk_index={2})'
-        ).format(
-            repr(list(self)),
-            repr(self.format_chunk_index),
-            repr(self.data_chunk_index)
-        )
-
-
-class WaveFormat(int):
-    PCM = 0x0001
-
-    def __repr__(self):
-        return (
-            'WaveFormat.PCM' if self == WaveFormat.PCM
-            else 'WaveFormat({0})'.format(repr(self))
-        )
-
 
 class WaveFormatChunk:
     id = 'fmt '
@@ -184,7 +128,7 @@ class WaveFormatChunk:
         format = Format(*unpack('<HHIIH', stream))
         return cls(
             size=chunk.size,
-            format=WaveFormat(format.format),
+            format=format.format,
             channels=format.channels,
             samplerate=format.samplerate,
             byterate=format.byterate,
@@ -192,25 +136,10 @@ class WaveFormatChunk:
             specific=stream.read()
         )
 
-    def __repr__(self):
-        return (
-            'WaveFormatChunk(size={0}, format={1}, channels={2}, '
-            'samplerate={3}, byterate={4}, blockalign={5}, '
-            'specific=<{6} bytes>)'
-        ).format(
-            repr(self.size),
-            repr(self.format),
-            repr(self.channels),
-            repr(self.samplerate),
-            repr(self.byterate),
-            repr(self.blockalign),
-            len(self.specific)
-        )
-
 
 class PcmWaveFormatChunk:
     id = WaveFormatChunk.id
-    format = WaveFormat.PCM
+    format = 0x0001
 
     def __init__(self, **kwargs):
         self.size = kwargs['size']
@@ -230,19 +159,6 @@ class PcmWaveFormatChunk:
             byterate=chunk.byterate,
             blockalign=chunk.blockalign,
             bitspersample=unpack('<H', stream)[0]
-        )
-
-    def __repr__(self):
-        return (
-            'PcmWaveFormatChunk(size={0}, channels={1}, samplerate={2}, '
-            'byterate={3}, blockalign={4}, bitspersample={5})'
-        ).format(
-            repr(self.size),
-            repr(self.channels),
-            repr(self.samplerate),
-            repr(self.byterate),
-            repr(self.blockalign),
-            repr(self.bitspersample)
         )
 
 
