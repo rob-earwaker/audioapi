@@ -101,6 +101,7 @@ class TestApi(unittest.TestCase):
         response = self.app.get(response['_links']['audiodata']['href'])
         response = json.loads(response.data.decode('utf-8'))
         self.assertEqual(44100, response['samplerate'])
+        self.assertEqual(1, response['channels'])
 
 
 if __name__ == '__main__':
