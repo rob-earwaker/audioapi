@@ -247,15 +247,14 @@ class WaveDataChunk:
     id = 'data'
 
 
-def read_wav(stream):
+def decode(stream):
     chunk = RiffChunk.decode(stream)
     if not chunk.format == RiffWaveChunk.format:
         raise ValueError('invalid RIFF format {0}'.format(chunk.format))
-    chunk = RiffWaveChunk.create(chunk)
-    print(chunk)
+    return RiffWaveChunk.create(chunk)
 
 
 if __name__ == '__main__':
     import sys
     with open(sys.argv[1], 'rb') as file:
-        read_wav(file)
+        decode(file)

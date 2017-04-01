@@ -1,7 +1,10 @@
 import base64
+import io
 import uuid
 
 import flask
+
+import wav
 
 
 app = flask.Flask(__name__)
@@ -31,6 +34,7 @@ class AudioFile:
         return {
             '_links': {
                 'self': {'href': self.href(self.id)},
+                'audiodata': {'href': AudioData.href(self.id)},
                 'audiofiles': {'href': AudioFiles.href()}
             },
             'name': self.name,
@@ -95,6 +99,34 @@ def retrieve_audiofile(id):
         return audiofile.data
     else:
         return flask.jsonify(audiofile.document())
+
+
+class AudioData:
+    def __init__(self, id, samplerate):
+        self.id = id
+        self.samplerate = samplerate
+
+    @staticmethod
+    def href(id):
+        return '{0}/data'.format(AudioFile.href(id))
+
+    def document(self):
+        return {
+            '_links': {
+                'self': {'href': self.href(self.id)},
+                'audiofile': {'href': AudioFile.href(self.id)},
+                'audiofiles': {'href': AudioFiles.href()}
+            },
+            'samplerate': self.samplerate
+        }
+
+
+@app.route(AudioData.href('<id>'), methods=['GET'])
+def retrieve_audiodata(id):
+    audiofile = store[id]
+    chunk = wav.decode(io.BytesIO(audiofile.data))
+    audiodata = AudioData(id, chunk.subchunks.format.samplerate)
+    return flask.jsonify(audiodata.document())
 
 
 if __name__ == '__main__':

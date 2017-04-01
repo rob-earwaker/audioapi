@@ -1,5 +1,6 @@
 import io
 import json
+import struct
 import unittest
 
 import api
@@ -84,6 +85,22 @@ class TestApi(unittest.TestCase):
         )
         self.assertIn('self', audiofile2['_links'])
         self.assertEqual(9, audiofile2['length'])
+
+    def test_retrieve_audiodata(self):
+        audiofile = (
+            struct.pack('<4sI4s', b'RIFF', 40, b'WAVE') +
+            struct.pack('<4sIHHIIHH', b'fmt ', 16, 1, 1, 44100, 88200, 2, 16) +
+            struct.pack('<4sI4s', b'data', 4, b'\x45\x06\xcf\x73')
+        )
+        response = self.app.post(
+            '/audiofiles',
+            content_type='multipart/form-data',
+            data={'file': (io.BytesIO(audiofile), 'audio.wav')}
+        )
+        response = json.loads(response.data.decode('utf-8'))
+        response = self.app.get(response['_links']['audiodata']['href'])
+        response = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(44100, response['samplerate'])
 
 
 if __name__ == '__main__':
