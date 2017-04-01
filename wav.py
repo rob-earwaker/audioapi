@@ -1,3 +1,4 @@
+import collections
 import io
 import struct
 
@@ -31,16 +32,13 @@ class Chunk:
 
     @classmethod
     def decode(cls, stream):
-        id = unpack('>4s', stream)[0].decode('ascii')
-        size = unpack('<I', stream)[0]
+        id, size = unpack('<4sI', stream)
         data = read(size, stream)
-        return cls(id, size, data)
+        return cls(id.decode('ascii'), size, data)
 
     def bytes(self):
         return (
-            struct.pack('>4s', self.id.encode('ascii')) +
-            struct.pack('<I', self.size) +
-            self.data
+            struct.pack('<4sI', self.id.encode('ascii'), self.size) + self.data
         )
 
     def stream(self):
@@ -64,7 +62,7 @@ class RiffChunk:
     def decode(cls, stream):
         chunk = Chunk.decode(stream)
         stream = io.BytesIO(chunk.data)
-        format = unpack('>4s', stream)[0].decode('ascii')
+        format = unpack('4s', stream)[0].decode('ascii')
         subchunks = []
         while True:
             try:
@@ -75,7 +73,7 @@ class RiffChunk:
 
     def chunk(self):
         data = (
-            struct.pack('>4s', self.format.encode('ascii')) +
+            struct.pack('4s', self.format.encode('ascii')) +
             ''.join(subchunk.bytes() for subchunk in self.subchunks)
         )
         return Chunk(self.id, self.size, data)
@@ -179,13 +177,18 @@ class WaveFormatChunk:
     @classmethod
     def create(cls, chunk):
         stream = io.BytesIO(chunk.data)
+        Format = collections.namedtuple(
+            'Format',
+            ['format', 'channels', 'samplerate', 'byterate', 'blockalign']
+        )
+        format = Format(*unpack('<HHIIH', stream))
         return cls(
             size=chunk.size,
-            format=WaveFormat(unpack('<H', stream)[0]),
-            channels=unpack('<H', stream)[0],
-            samplerate=unpack('<I', stream)[0],
-            byterate=unpack('<I', stream)[0],
-            blockalign=unpack('<H', stream)[0],
+            format=WaveFormat(format.format),
+            channels=format.channels,
+            samplerate=format.samplerate,
+            byterate=format.byterate,
+            blockalign=format.blockalign,
             specific=stream.read()
         )
 
